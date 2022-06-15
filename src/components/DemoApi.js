@@ -6,6 +6,7 @@ import {
   getTodos,
   getUsers,
 } from "../services";
+import { waterfall } from "async";
 
 export const DemoApi = () => {
   const [promiseAllSettledRes, setPromiseAllSettledRes] = useState();
@@ -90,6 +91,7 @@ export const DemoApi = () => {
       });
 
     getUsers()
+      .then((res) => res?.json())
       .then((res) => {
         // For rejection
         // promise2
@@ -100,15 +102,19 @@ export const DemoApi = () => {
         console.log("1. Get User: ", res);
         getComments()
           // promise2()
+          .then((res) => res?.json())
           .then((res) => {
             console.log("2. Get Comments: ", res);
             getAlbums()
+              .then((res) => res?.json())
               .then((res) => {
                 console.log("3. Get Albums: ", res);
                 getPhotos()
+                  .then((res) => res?.json())
                   .then((res) => {
                     console.log("4. Get Photos: ", res);
                     getTodos()
+                      .then((res) => res?.json())
                       .then((res) => {
                         console.log("5. Get Todos: ", res);
                       })
@@ -131,7 +137,80 @@ export const DemoApi = () => {
       .catch((e) => {
         console.log("Something went wrong");
       });
+
+    // waterfall([apiCallOne, apiCallTwo], (err, results) => {
+    //   console.log("Inside Callback of waterfall: ");
+    //   if (err) {
+    //     return console.error(err);
+    //   }
+
+    //   console.log("Waterfall Res: ", JSON.stringify(results));
+    // });
+
+    // waterfall(
+    //   [
+    //     function firstStep(done) {
+    //       console.log("start!");
+
+    //       done(null, "Value from step 1"); // <- set value to passed to step 2
+    //     },
+    //     function secondStep(step1Result, done) {
+    //       console.log(step1Result);
+
+    //       done(null, "Value from step 2"); // <- set value to passed to step 3
+    //     },
+    //     function thirdStep(step2Result, done) {
+    //       console.log(step2Result);
+
+    //       done(null); // <- no value set for the next step.
+    //     },
+    //   ],
+    //   function (err) {
+    //     if (err) {
+    //       throw new Error(err);
+    //     } else {
+    //       console.log("No error happened in any steps, operation done!");
+    //     }
+    //   }
+    // );
+
+    // Testing:
+
+    waterfall([apiCallOne, apiCallTwo], (err) => {
+      if (err) throw new Error(err);
+      else console.log("No error happened in any steps, operation done!");
+    });
   }, []);
+
+  // Below two functions are for Async Waterfall approach
+
+  const apiCallOne = (done) => {
+    console.log("API call one: ");
+    getUsers()
+      .then((data) => data.json())
+      .then((res) => {
+        done(null, res);
+      })
+      .catch((e) => {
+        done(null, e);
+      });
+  };
+
+  const apiCallTwo = (apiCallOneRes, done) => {
+    console.log("API call two: ", apiCallOneRes);
+    getAlbums()
+      .then((data) => data.json())
+      .then((res) => {
+        done(null, res);
+      })
+      .catch((e) => {
+        done(null, e);
+      });
+  };
+
+  //   const waterfallResCallback = (err, res) => {
+  //     console.log("Waterfall result: ", res);
+  //   };
   return (
     <div>
       <h1>Demo for sequential API calls...</h1>
