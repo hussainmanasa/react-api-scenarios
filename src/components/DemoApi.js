@@ -1,16 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import {
+  getAlbums,
+  getComments,
+  getPhotos,
+  getTodos,
+  getUsers,
+} from "../services";
 
 export const DemoApi = () => {
-  const baseUrl = "https://jsonplaceholder.typicode.com/";
-  const url1 = "users";
-  const url2 = "comments";
-  const url3 = "albums";
-  const url4 = "photos";
-  const url5 = "todos";
+  const [promiseAllSettledRes, setPromiseAllSettledRes] = useState();
+  const [promiseAllRes, setPromiseAllRes] = useState();
+  //   const [sequence, setSequence] = useState([]);
 
   useEffect(() => {
     const promise1 = new Promise((resolve, reject) => {
-      fetch(baseUrl + url1)
+      getUsers()
         .then((res) => res.json())
         .then((data) => {
           resolve(data);
@@ -21,7 +25,7 @@ export const DemoApi = () => {
     });
 
     // const promise2 = new Promise((resolve, reject) => {
-    //   fetch(baseUrl + url2)
+    //   getComments()
     //     .then((res) => res.json())
     //     .then((data) => {
     //       resolve(data);
@@ -32,11 +36,11 @@ export const DemoApi = () => {
     // });
 
     const promise2 = new Promise((resolve, reject) =>
-      setTimeout(reject, 100, "rejected!")
+      setTimeout(reject, 100, "rejected")
     );
 
     const promise3 = new Promise((resolve, reject) => {
-      fetch(baseUrl + url3)
+      getAlbums()
         .then((res) => res.json())
         .then((data) => {
           resolve(data);
@@ -47,7 +51,7 @@ export const DemoApi = () => {
     });
 
     const promise4 = new Promise((resolve, reject) => {
-      fetch(baseUrl + url4)
+      getPhotos()
         .then((res) => res.json())
         .then((data) => {
           resolve(data);
@@ -58,7 +62,7 @@ export const DemoApi = () => {
     });
 
     const promise5 = new Promise((resolve, reject) => {
-      fetch(baseUrl + url5)
+      getTodos()
         .then((res) => res.json())
         .then((data) => {
           resolve(data);
@@ -70,13 +74,93 @@ export const DemoApi = () => {
 
     Promise.allSettled([promise1, promise2, promise3, promise4, promise5]).then(
       (res) => {
-        console.log("Result: ", res);
+        console.log("Promise All Settled Result: ", res);
+        setPromiseAllSettledRes(res);
       }
     );
+
+    Promise.all([promise1, promise2, promise3, promise4, promise5])
+      .then((res) => {
+        console.log("Promise All > Success: ", typeof res);
+        setPromiseAllRes(res);
+      })
+      .catch((e) => {
+        console.log("Promise All > Rejected: ", typeof e);
+        setPromiseAllRes(e);
+      });
+
+    getUsers()
+      .then((res) => {
+        // For rejection
+        // promise2
+        //   .then((data) => {
+        //     console.log("Data of promise 2 > Chaining: ", data);
+        //     setSequence([...sequence, "Rejected"]);
+        //   })
+        console.log("1. Get User: ", res);
+        getComments()
+          // promise2()
+          .then((res) => {
+            console.log("2. Get Comments: ", res);
+            getAlbums()
+              .then((res) => {
+                console.log("3. Get Albums: ", res);
+                getPhotos()
+                  .then((res) => {
+                    console.log("4. Get Photos: ", res);
+                    getTodos()
+                      .then((res) => {
+                        console.log("5. Get Todos: ", res);
+                      })
+                      .catch((e) => {
+                        console.log("Something went wrong");
+                      });
+                  })
+                  .catch((e) => {
+                    console.log("Something went wrong");
+                  });
+              })
+              .catch((e) => {
+                console.log("Something went wrong");
+              });
+          })
+          .catch((e) => {
+            console.log("Something went wrong");
+          });
+      })
+      .catch((e) => {
+        console.log("Something went wrong");
+      });
   }, []);
   return (
     <div>
-      <p>Demo for sequential API calls...</p>
+      <h1>Demo for sequential API calls...</h1>
+      <div>
+        <p>Parallel API calls Status (Using Pomise.allSettled): </p>
+        <div>
+          {promiseAllSettledRes &&
+            promiseAllSettledRes?.map((apiRes, index) => {
+              return (
+                <div key={index?.toString()}>
+                  <span>{index + 1}: </span>
+                  <span>{apiRes?.status}</span>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
+      <div>
+        <p>Parallel API calls Status (Using Pomise.all): </p>
+        <div>
+          {promiseAllRes && typeof promiseAllRes === "object" && (
+            <p>All API calls were successfull</p>
+          )}
+          {promiseAllRes && typeof promiseAllRes !== "object" && (
+            <p>Something went wrong!</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
