@@ -8,7 +8,7 @@ import {
 } from "../services";
 import { waterfall } from "async";
 
-export const DemoApi = () => {
+const DemoApi = () => {
   const [promiseAllSettledRes, setPromiseAllSettledRes] = useState();
   const [promiseAllRes, setPromiseAllRes] = useState();
   //   const [sequence, setSequence] = useState([]);
@@ -25,20 +25,20 @@ export const DemoApi = () => {
         });
     });
 
-    // const promise2 = new Promise((resolve, reject) => {
-    //   getComments()
-    //     .then((res) => res.json())
-    //     .then((data) => {
-    //       resolve(data);
-    //     })
-    //     .catch((e) => {
-    //       reject(e);
-    //     });
-    // });
+    const promise2 = new Promise((resolve, reject) => {
+      getComments()
+        .then((res) => res.json())
+        .then((data) => {
+          resolve(data);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
 
-    const promise2 = new Promise((resolve, reject) =>
-      setTimeout(reject, 100, "rejected")
-    );
+    // const promise2 = new Promise((resolve, reject) =>
+    //   setTimeout(reject, 100, "rejected")
+    // );
 
     const promise3 = new Promise((resolve, reject) => {
       getAlbums()
@@ -243,3 +243,5 @@ export const DemoApi = () => {
     </div>
   );
 };
+
+export default DemoApi;
